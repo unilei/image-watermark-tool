@@ -3,7 +3,7 @@ export default defineNuxtConfig({
     app: {
         // head
         head: {
-            title: 'AI指南专业版',
+            title: 'Image Watermark Tool',
             meta: [
                 {name: 'viewport', content: 'width=device-width, initial-scale=1'},
                 {

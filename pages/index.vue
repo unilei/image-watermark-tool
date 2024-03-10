@@ -112,8 +112,22 @@ const waterMarkTextChange = () => {
 
 <template>
   <div>
-    <h1 class="text-center text-[22px] font-bold mt-[40px]">Image Watermark Tool </h1>
-    <p class="text-center text-[22px]">图片水印打码工具</p>
+    <h1 class="text-center text-[22px] font-bold mt-[40px]">
+      Image Watermark Tool
+
+      <nuxt-link class="text-[12px] text-red-500"
+                 href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
+        Github
+      </nuxt-link>
+    </h1>
+    <p class="text-center text-[22px]">
+      图片水印打码工具
+      <nuxt-link class="text-[12px] text-red-500"
+                 href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
+        项目地址
+      </nuxt-link>
+    </p>
+
     <p class="text-center text-[12px] font-bold text-red-600 bg-[#F4F01E] mt-[14px] p-[10px]">
       我们提供一种安全的方法，让您可以在本地设备上为您的图片添加水印，无需任何网络连接。这是保护您敏感证件（如身份证、驾照、护照等）隐私的理想选择。<br>
       We provide a secure method that allows you to add watermarks to your images locally on your device, without any network connection required. This is an ideal choice for protecting the privacy of your sensitive documents, such as ID cards, driver's licenses, passports, etc.
