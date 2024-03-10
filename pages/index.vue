@@ -1,9 +1,16 @@
 <script setup>
+const {locale, locales, setLocale} = useI18n()
+
+const availableLocales = computed(() => {
+  return (locales.value).filter(i => i.code !== locale.value)
+})
+const switchLocalePath = useSwitchLocalePath()
+
 const canvas = ref(null)
 const canvasImage = ref()
 const fileObj = ref({
-  name:'',
-  type:''
+  name: '',
+  type: ''
 })
 const onFileChange = (event) => {
   const file = event.target.files[0]
@@ -35,7 +42,11 @@ const onFileChange = (event) => {
   reader.readAsDataURL(file)
 }
 
-const watermarkText = ref('仅供 xxx 验证使用')
+// const watermarkText = ref(locale.value === 'zh-CN' ? '仅供 xxx 验证使用' : 'Only for xxx verification use')
+const watermarkText = computed(() => {
+  return locale.value === 'cn' ? '仅供 xxx 验证使用' : 'Only for xxx verification use'
+})
+
 const watermarkColor = ref('#0000ff')
 const watermarkOpacity = ref(0.3)
 const watermarkSpacing = ref(5)
@@ -61,8 +72,8 @@ const setWatermark = (ctx) => {
   // 设置文字倾斜角度为30度
   ctx.rotate(45 * Math.PI / 180);
 
-  for (let i = 0, k = 0; k <= x ; i = ++k) {
-    for (let j = 0, l = -y; l < y ; j = ++l) {
+  for (let i = 0, k = 0; k <= x; i = ++k) {
+    for (let j = 0, l = -y; l < y; j = ++l) {
       const xIndex = i;
       const yIndex = j + y;
 
@@ -112,68 +123,90 @@ const waterMarkTextChange = () => {
 
 <template>
   <div>
-    <h1 class="text-center text-[22px] font-bold mt-[40px]">
-      Image Watermark Tool
-
-      <nuxt-link class="text-[12px] text-red-500"
-                 href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-        Github
-      </nuxt-link>
-    </h1>
-    <p class="text-center text-[22px]">
-      图片水印打码工具
-      <nuxt-link class="text-[12px] text-red-500"
-                 href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-        项目地址
-      </nuxt-link>
+    <p class="text-center p-[10px] sm:p-[0] sm:h-[40px] sm:leading-[40px] text-[12px] font-bold text-white bg-[#5d5cde]">
+      {{ $t('yourImageWillNotBeSentToAnyServer') }}
     </p>
 
-    <p class="text-center text-[12px] font-bold text-red-600 bg-[#F4F01E] mt-[14px] p-[10px]">
-      我们提供一种安全的方法，让您可以在本地设备上为您的图片添加水印，无需任何网络连接。这是保护您敏感证件（如身份证、驾照、护照等）隐私的理想选择。<br>
-      We provide a secure method that allows you to add watermarks to your images locally on your device, without any network connection required. This is an ideal choice for protecting the privacy of your sensitive documents, such as ID cards, driver's licenses, passports, etc.
-    </p>
+    <div class="flex flex-col sm:flex-row">
+      <div class="bg-[#8881] p-[20px] sm:h-[calc(100vh-40px)] w-full sm:w-[520px] overflow-y-auto relative">
+        <div class="sm:h-[calc(100vh-180px)] sm:overflow-y-auto">
+          <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)">
+            🌐 {{ locale.name }}
+          </NuxtLink>
 
-    <div class="text-center mt-[40px]">
-      <input type="file" accept="image/*" @change="onFileChange">
+          <h1 class="text-[22px] font-bold my-[20px]">
+            {{ $t('websiteName') }}
+            <nuxt-link class="text-[12px] text-red-500"
+                       href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
+              Github
+            </nuxt-link>
+          </h1>
+          <ul class="flex flex-col gap-[12px]">
+            <li class="flex flex-col gap-4">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkText') }}</label>
+              <el-input v-model="watermarkText" type="textarea" placeholder="请输入内容"
+                        @change="waterMarkTextChange"></el-input>
+            </li>
+            <li class="flex flex-col  gap-4">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkColor') }}</label>
+              <client-only>
+                <el-color-picker v-model="watermarkColor" @change="waterMarkTextChange"></el-color-picker>
+              </client-only>
+            </li>
+            <li class="flex flex-col  gap-4">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkOpacity') }}</label>
+              <client-only>
+                <el-slider v-model="watermarkOpacity" :min="0" :max="1" :step="0.1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+            <li class="flex flex-col  gap-4">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSpacing') }}</label>
+              <client-only>
+                <el-slider v-model="watermarkSpacing" :min="1" :max="16" :step="0.5"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+            <li class="flex flex-col gap-4">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSize') }}</label>
+              <client-only>
+                <el-slider v-model="watermarkTextSize" :min="0.1" :max="10" :step="0.1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+          </ul>
+        </div>
+        <p class="hidden sm:block h-[120px] absolute bottom-0 left-0 right-0 w-full text-center text-[12px] font-semibold text-[#666] p-[10px]">
+          {{ $t('websiteDesc') }}
+        </p>
+      </div>
+      <div class="bg-[#8881] sm:bg-white p-[20px] sm:h-[calc(100vh-40px)] w-full sm:overflow-y-auto">
+
+        <h1 class="hidden sm:block text-center text-[22px] font-bold mt-[40px]">
+          {{ $t('websiteName') }}
+
+          <nuxt-link class="text-[12px] text-red-500"
+                     href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
+            Github
+          </nuxt-link>
+        </h1>
+
+        <div class="text-center mt-[14px] sm:mt-[40px]">
+          <input type="file" accept="image/*" @change="onFileChange">
+        </div>
+
+
+        <div class="max-w-[520px] w-full mx-auto my-[12px] sm:my-[40px] p-[10px] text-center" v-show="canvasImage">
+          <el-button type="primary" @click="handleDownload">{{ $t('download') }}</el-button>
+        </div>
+
+        <div class="text-center my-[40px] max-w-[520px]  w-full mx-auto p-[10px]" v-show="canvasImage">
+          <canvas ref="canvas"></canvas>
+        </div>
+      </div>
+
     </div>
 
-
-    <div class="max-w-[520px] mx-auto mt-[40px] p-[10px]">
-      <ul class="flex flex-col gap-[12px]">
-        <li class="flex flex-row items-center gap-4">
-          <label class="min-w-[70px] font-bold text-[12px]">水印文字</label>
-          <el-input v-model="watermarkText" type="textarea" placeholder="请输入内容"
-                    @change="waterMarkTextChange"></el-input>
-        </li>
-        <li class="flex flex-row items-center gap-4">
-          <label class="min-w-[70px] font-bold text-[12px]">水印颜色</label>
-          <el-color-picker v-model="watermarkColor" @change="waterMarkTextChange"></el-color-picker>
-        </li>
-        <li class="flex flex-row items-center gap-4">
-          <label class="min-w-[70px] font-bold text-[12px]">水印透明度</label>
-          <el-slider v-model="watermarkOpacity" :min="0" :max="1" :step="0.1" @change="waterMarkTextChange"></el-slider>
-        </li>
-        <li class="flex flex-row items-center gap-4">
-          <label class="min-w-[70px] font-bold text-[12px]">水印间距</label>
-          <el-slider v-model="watermarkSpacing" :min="1" :max="16" :step="0.5"
-                     @change="waterMarkTextChange"></el-slider>
-        </li>
-        <li class="flex flex-row items-center gap-4">
-          <label class="min-w-[70px] font-bold text-[12px]">水印大小</label>
-          <el-slider v-model="watermarkTextSize" :min="0.1" :max="10" :step="0.1"
-                     @change="waterMarkTextChange"></el-slider>
-        </li>
-      </ul>
-
-    </div>
-
-    <div class="max-w-[520px] w-full mx-auto my-[40px] p-[10px] text-center" v-show="canvasImage">
-      <el-button type="primary" @click="handleDownload">Download</el-button>
-    </div>
-
-    <div class="text-center my-[40px] max-w-[520px]  w-full mx-auto p-[10px]" v-show="canvasImage">
-      <canvas ref="canvas"></canvas>
-    </div>
 
   </div>
 </template>
