@@ -42,11 +42,7 @@ const onFileChange = (event) => {
   reader.readAsDataURL(file)
 }
 
-// const watermarkText = ref(locale.value === 'zh-CN' ? '仅供 xxx 验证使用' : 'Only for xxx verification use')
-const watermarkText = computed(() => {
-  return locale.value === 'cn' ? '仅供 xxx 验证使用' : 'Only for xxx verification use'
-})
-
+const watermarkText = ref(locale.value === 'cn' ? '仅供 xxx 验证使用' : 'Only for xxx verification use')
 const watermarkColor = ref('#0000ff')
 const watermarkOpacity = ref(0.3)
 const watermarkSpacing = ref(5)
