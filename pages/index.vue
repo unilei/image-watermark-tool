@@ -47,47 +47,50 @@ const watermarkColor = ref('#0000ff')
 const watermarkOpacity = ref(0.3)
 const watermarkSpacing = ref(5)
 const watermarkTextSize = ref(2)
+const watermarkAngle = ref(30)
 
 const setWatermark = (ctx) => {
+  const lines = watermarkText.value.split('\n');
   const textSize = watermarkTextSize.value * Math.max(15, Math.min(canvas.value.width, canvas.value.height) / 25);
 
   ctx.font = `bold ${textSize}px -apple-system,"Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif`;
   ctx.fillStyle = watermarkColor.value;
   ctx.globalAlpha = watermarkOpacity.value;
 
-  const textWidth = ctx.measureText(watermarkText.value).width;
-  const textMargin = ctx.measureText('啊').width;
-
-  const x = Math.ceil(canvas.value.width / (textWidth + textMargin));
-  const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textSize));
-
-  // 创建一个二维数组来记录每个区域是否已经绘制过水印文本
-  const drawnAreas = Array.from({length: x + 1}, () => Array.from({length: y + 1}, () => false));
   // 保存当前绘图状态
   ctx.save();
-  // 设置文字倾斜角度为30度
-  ctx.rotate(45 * Math.PI / 180);
+  // 设置文字倾斜角度
+  ctx.rotate(watermarkAngle.value * Math.PI / 180);
 
-  for (let i = 0, k = 0; k <= x; i = ++k) {
-    for (let j = 0, l = -y; l < y; j = ++l) {
-      const xIndex = i;
-      const yIndex = j + y;
+  lines.forEach((line, lineIndex) => {
+    const textWidth = ctx.measureText(line).width;
+    const textHeight = textSize; // 估算文字高度
+    const textMargin = ctx.measureText('啊').width;
+    // 计算每行文字的高度，包括行间距
+    const lineHeight = textSize + watermarkSpacing.value * textSize;
 
-      // 跳过已经绘制过的区域
-      if (drawnAreas[xIndex][yIndex]) continue;
+    const x = Math.ceil(canvas.value.width / (textWidth + textMargin));
+    const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
 
-      ctx.fillText(watermarkText.value, (textWidth + textMargin) * i, watermarkSpacing.value * textSize * j);
+// 计算绘制文本的 y 坐标，考虑行索引和行高
+    const startY = lineHeight * lineIndex;
 
-      // 标记当前区域已经绘制过水印文本
-      drawnAreas[xIndex][yIndex] = true;
+    for (let i = 0; i < x; i++) {
+      for (let j = -y; j < y; j++) {
+        // 计算绘制文本的y坐标，考虑行间距和行索引
+        const yPos = startY + j * watermarkSpacing.value * textHeight;
+
+        ctx.fillText(line, (textWidth + textMargin) * i, yPos);
+      }
     }
-  }
+  });
 
   // 恢复之前保存的绘图状态
   ctx.restore();
 
   ctx.globalAlpha = 1; // 重置全局透明度
-}
+};
+
 const handleDownload = () => {
   // 保存图片
   const dataURL = canvas.value.toDataURL();
@@ -138,35 +141,44 @@ const waterMarkTextChange = () => {
             </nuxt-link>
           </h1>
           <ul class="flex flex-col gap-[12px]">
-            <li class="flex flex-col gap-4">
+            <li class="flex flex-col gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkText') }}</label>
               <el-input v-model="watermarkText" type="textarea" placeholder="请输入内容"
                         @change="waterMarkTextChange"></el-input>
             </li>
-            <li class="flex flex-col  gap-4">
+            <li class="flex flex-col  gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkColor') }}</label>
               <client-only>
                 <el-color-picker v-model="watermarkColor" @change="waterMarkTextChange"></el-color-picker>
               </client-only>
             </li>
-            <li class="flex flex-col  gap-4">
+            <li class="flex flex-col  gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkOpacity') }}</label>
               <client-only>
-                <el-slider v-model="watermarkOpacity" :min="0" :max="1" :step="0.1"
-                           @change="waterMarkTextChange"></el-slider>
+                <el-slider
+                    v-model="watermarkOpacity" :min="0" :max="1" :step="0.1"
+                    @change="waterMarkTextChange">
+                </el-slider>
               </client-only>
             </li>
-            <li class="flex flex-col  gap-4">
+            <li class="flex flex-col  gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSpacing') }}</label>
               <client-only>
                 <el-slider v-model="watermarkSpacing" :min="1" :max="16" :step="0.5"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>
-            <li class="flex flex-col gap-4">
+            <li class="flex flex-col gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSize') }}</label>
               <client-only>
                 <el-slider v-model="watermarkTextSize" :min="0.1" :max="10" :step="0.1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+            <li class="flex flex-col gap-1">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkAngle') }}</label>
+              <client-only>
+                <el-slider v-model="watermarkAngle" :min="0" :max="90" :step="1"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>

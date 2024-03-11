@@ -6,6 +6,7 @@
   "watermarkOpacity": "水印透明度",
   "watermarkSpacing": "水印间距",
   "watermarkSize": "水印大小",
+  "watermarkAngle": "水印倾斜角度",
   "websiteDesc": "我们提供一种安全的方法，让您可以在本地设备上为您的图片添加水印，无需任何网络连接。这是保护您敏感证件（如身份证、驾照、护照等）隐私的理想选择。",
   "watermarkTextPlaceholder": "仅供 xxx 验证使用",
   "yourImageWillNotBeSentToAnyServer": "您的图像不会发送到任何服务器。 所有的操作都是在本地浏览器中完成的。"

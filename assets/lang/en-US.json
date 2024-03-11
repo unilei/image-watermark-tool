@@ -6,6 +6,7 @@
   "watermarkOpacity": "Watermark opacity",
   "watermarkSpacing": "Watermark spacing",
   "watermarkSize": "Watermark size",
+  "watermarkAngle": "Watermark angle",
   "websiteDesc": "We provide a secure method that allows you to add watermarks to your images locally on your device, without any network connection required. This is an ideal choice for protecting the privacy of your sensitive documents, such as ID cards, driver's licenses, passports, etc.",
   "watermarkTextPlaceholder": "Only for xxx verification use",
   "yourImageWillNotBeSentToAnyServer": "\uD83D\uDD25 Your image will not be sent to any server. All the magic is done in the browser locally"
