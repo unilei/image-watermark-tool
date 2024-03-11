@@ -69,10 +69,12 @@ const setWatermark = (ctx) => {
     // 计算每行文字的高度，包括行间距
     const lineHeight = textSize + watermarkSpacing.value * textSize;
 
-    const x = Math.ceil(canvas.value.width / (textWidth + textMargin));
+    // 计算水印的宽度
+    const diagonalLength = Math.sqrt(canvas.value.width ** 2 + canvas.value.height ** 2);
+    const x = Math.ceil(diagonalLength / (textWidth + textMargin));
     const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
 
-// 计算绘制文本的 y 坐标，考虑行索引和行高
+    // 计算绘制文本的 y 坐标，考虑行索引和行高
     const startY = lineHeight * lineIndex;
 
     for (let i = 0; i < x; i++) {
