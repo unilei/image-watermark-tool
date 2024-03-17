@@ -45,7 +45,8 @@ export default defineNuxtConfig({
         '@element-plus/nuxt',
         '@nuxtjs/tailwindcss',
         '@nuxtjs/device',
-        '@nuxtjs/i18n'
+        '@nuxtjs/i18n',
+        'nuxt-icon'
     ],
     i18n: {
         defaultLocale: 'cn',
