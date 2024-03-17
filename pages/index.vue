@@ -6,6 +6,12 @@ const availableLocales = computed(() => {
 })
 const switchLocalePath = useSwitchLocalePath()
 
+const repeatTextStatus = ref(true)
+const singleXPos = ref(0)
+const singleYPos = ref(0)
+const singleInitStatus = ref(true)
+const multiInitStatus = ref(true)
+
 const canvas = ref(null)
 const canvasImage = ref()
 const fileObj = ref({
@@ -17,6 +23,12 @@ const onFileChange = (event) => {
   const ctx = canvas.value.getContext('2d')
 
   if (!file) return
+
+  if (repeatTextStatus.value) {
+    multiInitStatus.value = true
+  } else {
+    singleInitStatus.value = true
+  }
 
   fileObj.value.name = file.name
   fileObj.value.type = file.type
@@ -48,6 +60,7 @@ const watermarkOpacity = ref(0.3)
 const watermarkSpacing = ref(5)
 const watermarkTextSize = ref(2)
 const watermarkAngle = ref(30)
+const watermarkSingleAngle = ref(0)
 
 const setWatermark = (ctx) => {
   const lines = watermarkText.value.split('\n');
@@ -59,51 +72,89 @@ const setWatermark = (ctx) => {
 
   // 保存当前绘图状态
   ctx.save();
-  // 设置文字倾斜角度
-  ctx.rotate(watermarkAngle.value * Math.PI / 180);
 
-  lines.forEach((line, lineIndex) => {
-    const textWidth = ctx.measureText(line).width;
-    const textHeight = textSize; // 估算文字高度
-    const textMargin = ctx.measureText('啊').width;
-    // 计算每行文字的高度，包括行间距
-    const lineHeight = textSize + watermarkSpacing.value * textSize;
-
-    // 计算水印的宽度
-    const diagonalLength = Math.sqrt(canvas.value.width ** 2 + canvas.value.height ** 2);
-    const x = Math.ceil(diagonalLength / (textWidth + textMargin));
-    const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
-
-    // 计算绘制文本的 y 坐标，考虑行索引和行高
-    const startY = lineHeight * lineIndex;
-
-    for (let i = 0; i < x; i++) {
-      for (let j = -y; j < y; j++) {
-        // 计算绘制文本的y坐标，考虑行间距和行索引
-        const yPos = startY + j * watermarkSpacing.value * textHeight;
-
-        ctx.fillText(line, (textWidth + textMargin) * i, yPos);
-      }
+  //当水印是铺满图片场景下
+  if (repeatTextStatus.value) {
+    if (multiInitStatus.value) {
+      multiInitStatus.value = false
+      watermarkAngle.value = 30
     }
-  });
+    // 设置文字倾斜角度
+    ctx.rotate(watermarkAngle.value * Math.PI / 180);
+
+    lines.forEach((line, lineIndex) => {
+      const textWidth = ctx.measureText(line).width;
+      const textHeight = textSize; // 估算文字高度
+      const textMargin = ctx.measureText('哈').width;
+      // 计算每行文字的高度，包括行间距
+      const lineHeight = textSize + watermarkSpacing.value * textSize;
+
+      // 计算水印的宽度
+      const diagonalLength = Math.sqrt(canvas.value.width ** 2 + canvas.value.height ** 2);
+      const x = Math.ceil(diagonalLength / (textWidth + textMargin));
+      const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
+
+      // 计算绘制文本的 y 坐标，考虑行索引和行高
+      const startY = lineHeight * lineIndex;
+
+      for (let i = 0; i < x; i++) {
+        for (let j = -y; j < y; j++) {
+          // 计算绘制文本的y坐标，考虑行间距和行索引
+          const yPos = startY + j * watermarkSpacing.value * textHeight;
+
+          ctx.fillText(line, (textWidth + textMargin) * i, yPos);
+        }
+      }
+    })
+  } else {
+    if (singleInitStatus.value) {
+      watermarkSingleAngle.value = 0
+    }
+    ctx.rotate(watermarkSingleAngle.value * Math.PI / 180);
+    // 当水印不是铺满图片场景下
+    lines.forEach((line, lineIndex) => {
+
+      if (singleInitStatus.value) {
+        singleInitStatus.value = false
+        singleXPos.value = Math.ceil((canvas.value.width - ctx.measureText(line).width) / 2)
+        singleYPos.value = Math.ceil((canvas.value.height - textSize) / 2)
+      }
+
+      // 计算绘制文本的 y 坐标，考虑行索引和行高
+      const startY = textSize * lineIndex + singleYPos.value;
+
+      ctx.fillText(line, singleXPos.value, startY);
+    })
+
+  }
 
   // 恢复之前保存的绘图状态
   ctx.restore();
 
   ctx.globalAlpha = 1; // 重置全局透明度
 };
-
+const downloadLoading = ref(false)
 const handleDownload = () => {
-  // 保存图片
-  const dataURL = canvas.value.toDataURL();
-  const link = document.createElement('a');
-  link.href = dataURL;
-  link.download = fileObj.value.name || 'image.png';
-  link.click();
-  link.remove();
+  if (!canvas.value) return
+  downloadLoading.value = true
+  setTimeout(() => {
+    // 保存图片
+    const dataURL = canvas.value.toDataURL();
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = fileObj.value.name || 'image.png';
+    link.click();
+    link.remove();
+    downloadLoading.value = false
+  }, 2000)
 }
 
+const waterMarkColorChange = (e) => {
+  watermarkColor.value = e
+  waterMarkTextChange()
+}
 const waterMarkTextChange = () => {
+
   if (!canvasImage.value) return;
 
   const ctx = canvas.value.getContext('2d');
@@ -119,7 +170,16 @@ const waterMarkTextChange = () => {
 
   ctx.globalAlpha = 1; // 重置全局透明度
 }
-
+const repeatStatusChange = (e) => {
+  repeatTextStatus.value = e
+  if (repeatTextStatus.value) {
+    multiInitStatus.value = true
+  } else {
+    singleInitStatus.value = true
+  }
+  if (!canvasImage.value) return;
+  waterMarkTextChange()
+}
 </script>
 
 <template>
@@ -129,32 +189,45 @@ const waterMarkTextChange = () => {
     </p>
 
     <div class="flex flex-col sm:flex-row">
-      <div class="bg-[#8881] p-[20px] sm:h-[calc(100vh-40px)] w-full sm:w-[520px] overflow-y-auto relative">
+      <div class="bg-[#8881] sm:h-[calc(100vh-40px)] w-full sm:w-[520px] overflow-y-auto relative">
         <div class="sm:h-[calc(100vh-180px)] sm:overflow-y-auto">
-          <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)">
-            🌐 {{ locale.name }}
-          </NuxtLink>
+          <div class="p-[20px]">
+            <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)">
+              🌐 {{ locale.name }}
+            </NuxtLink>
+            <h1 class="text-[22px] font-bold my-[20px] flex gap-1 flex-row items-center ">
+              {{ $t('websiteName') }}
+              <nuxt-link class="text-[12px] text-red-500"
+                         href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
+                <Icon name="uil:github" color="black" size="24"/>
+              </nuxt-link>
+            </h1>
+          </div>
 
-          <h1 class="text-[22px] font-bold my-[20px]">
-            {{ $t('websiteName') }}
-            <nuxt-link class="text-[12px] text-red-500"
-                       href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-              Github
-            </nuxt-link>
-          </h1>
           <ul class="flex flex-col gap-[12px]">
-            <li class="flex flex-col gap-1">
+            <li class="flex flex-col gap-1  px-[20px] ">
+              <label class="min-w-[70px] font-bold text-[12px]">
+                {{ $t('imageFullyCoveredTheWatermark') }}
+              </label>
+              <el-switch v-model="repeatTextStatus"
+                         style="--el-switch-on-color: #5d5cde; --el-switch-off-color: #ff4949"
+                         @change="repeatStatusChange"
+              >
+
+              </el-switch>
+            </li>
+            <li class="flex flex-col gap-1  px-[20px] ">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkText') }}</label>
               <el-input v-model="watermarkText" type="textarea" placeholder="请输入内容"
                         @change="waterMarkTextChange"></el-input>
             </li>
-            <li class="flex flex-col  gap-1">
+            <li class="flex flex-col  px-[20px]   gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkColor') }}</label>
               <client-only>
-                <el-color-picker v-model="watermarkColor" @change="waterMarkTextChange"></el-color-picker>
+                <el-color-picker v-model="watermarkColor" @active-change="waterMarkColorChange"></el-color-picker>
               </client-only>
             </li>
-            <li class="flex flex-col  gap-1">
+            <li class="flex flex-col  px-[20px]  gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkOpacity') }}</label>
               <client-only>
                 <el-slider
@@ -163,41 +236,63 @@ const waterMarkTextChange = () => {
                 </el-slider>
               </client-only>
             </li>
-            <li class="flex flex-col  gap-1">
+            <li class="flex flex-col px-[20px]  gap-1" v-if="repeatTextStatus">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSpacing') }}</label>
               <client-only>
                 <el-slider v-model="watermarkSpacing" :min="1" :max="16" :step="0.5"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>
-            <li class="flex flex-col gap-1">
+            <li class="flex flex-col  px-[20px]  gap-1">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkSize') }}</label>
               <client-only>
                 <el-slider v-model="watermarkTextSize" :min="0.1" :max="10" :step="0.1"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>
-            <li class="flex flex-col gap-1">
+            <li class="flex flex-col  px-[20px]  gap-1" v-if="repeatTextStatus">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkAngle') }}</label>
               <client-only>
                 <el-slider v-model="watermarkAngle" :min="0" :max="90" :step="1"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>
+            <li class="flex flex-col  px-[20px]  gap-1" v-if="!repeatTextStatus">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkAngle') }}</label>
+              <client-only>
+                <el-slider v-model="watermarkSingleAngle" :min="-90" :max="90" :step="1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+            <li class="flex flex-col  px-[20px]  gap-1" v-if="!repeatTextStatus">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkleftright') }}</label>
+              <client-only>
+                <el-slider v-model="singleXPos" :min="0" :max="canvas.width" :step="1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
+            <li class="flex flex-col  px-[20px]  gap-1" v-if="!repeatTextStatus">
+              <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarktopbottom') }}</label>
+              <client-only>
+                <el-slider v-model="singleYPos" :min="0" :max="canvas.height" :step="1"
+                           @change="waterMarkTextChange"></el-slider>
+              </client-only>
+            </li>
           </ul>
         </div>
-        <p class="hidden sm:block h-[120px] absolute bottom-0 left-0 right-0 w-full text-center text-[12px] font-semibold text-[#666] p-[10px]">
+        <p class="hidden sm:block h-[120px] absolute bottom-0 left-0 right-0 w-full text-[12px] font-semibold text-[#666] p-[10px]">
+          <Icon name="emojione-v1:circled-information-source"></Icon>
           {{ $t('websiteDesc') }}
         </p>
       </div>
       <div class="bg-[#8881] sm:bg-white p-[20px] sm:h-[calc(100vh-40px)] w-full sm:overflow-y-auto">
 
-        <h1 class="hidden sm:block text-center text-[22px] font-bold mt-[40px]">
+        <h1 class="hidden sm:flex text-center text-[22px] font-bold mt-[40px] sm:gap-1 sm:flex-row sm:items-center sm:justify-center">
           {{ $t('websiteName') }}
 
           <nuxt-link class="text-[12px] text-red-500"
                      href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-            Github
+            <Icon name="uil:github" color="black" size="24"/>
           </nuxt-link>
         </h1>
 
@@ -207,7 +302,11 @@ const waterMarkTextChange = () => {
 
 
         <div class="max-w-[520px] w-full mx-auto my-[12px] sm:my-[40px] p-[10px] text-center" v-show="canvasImage">
-          <el-button type="primary" @click="handleDownload">{{ $t('download') }}</el-button>
+          <el-button :loading="downloadLoading"
+                     color="#5d5cde" type="primary"
+                     @click="handleDownload">
+            {{ $t('download') }}
+          </el-button>
         </div>
 
         <div class="text-center my-[40px] max-w-[520px]  w-full mx-auto p-[10px]" v-show="canvasImage">
@@ -216,7 +315,6 @@ const waterMarkTextChange = () => {
       </div>
 
     </div>
-
 
   </div>
 </template>
@@ -227,5 +325,8 @@ canvas {
   width: 100%;
   border: 1px dashed #AAA;
   border-radius: 8px;
+}
+:deep(.el-slider){
+  --el-slider-main-bg-color: #5d5cde;
 }
 </style>
