@@ -135,6 +135,71 @@ const setWatermark = (ctx) => {
 };
 const downloadLoading = ref(false)
 const handleDownload = () => {
+  if (!canvas.value) return;
+
+  downloadPercentStatus.value = true
+  downloadLoading.value = true;
+
+  setTimeout(() => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', canvas.value.toDataURL());
+    xhr.responseType = 'blob';
+
+    xhr.onloadstart = () => {
+      // downloadLoading.value = true;
+    };
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        // 更新进度条
+        updateProgressBar(percentComplete);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const link = document.createElement('a');
+        const blob = new Blob([xhr.response], {type: 'image/png'});
+        const url = URL.createObjectURL(blob);
+
+        link.href = url;
+        link.download = fileObj.value.name || 'image.png';
+        link.click();
+
+        URL.revokeObjectURL(url);
+        link.remove();
+      }
+    };
+
+    xhr.onloadend = () => {
+      downloadLoading.value = false;
+      // 重置进度条
+      resetProgressBar();
+    };
+
+    xhr.send();
+  }, 500)
+
+};
+const downloadPercentStatus = ref(false)
+const downloadPercentComplete = ref(0);
+const updateProgressBar = (percentComplete) => {
+  // 更新进度条的显示
+  // 你可以根据下载进度来更新你的进度条的样式或长度等
+  downloadPercentComplete.value = percentComplete;
+};
+
+const resetProgressBar = () => {
+  // 重置进度条的显示
+  // 可能是隐藏进度条或将进度条长度重置为初始状态等
+  setTimeout(() => {
+    downloadPercentStatus.value = false;
+    downloadPercentComplete.value = 0;
+  },3000)
+};
+
+const handleDownload1 = () => {
   if (!canvas.value) return
   downloadLoading.value = true
   setTimeout(() => {
@@ -307,6 +372,11 @@ const repeatStatusChange = (e) => {
                      @click="handleDownload">
             {{ $t('download') }}
           </el-button>
+          <el-progress class="mt-3"
+                       v-if="downloadPercentStatus"
+                       :percentage="downloadPercentComplete"
+                       color="#5d5cde"
+          />
         </div>
 
         <div class="text-center my-[40px] max-w-[520px]  w-full mx-auto p-[10px]" v-show="canvasImage">
@@ -326,7 +396,8 @@ canvas {
   border: 1px dashed #AAA;
   border-radius: 8px;
 }
-:deep(.el-slider){
+
+:deep(.el-slider) {
   --el-slider-main-bg-color: #5d5cde;
 }
 </style>
