@@ -1,5 +1,6 @@
 <script setup>
 const {locale, locales, setLocale} = useI18n()
+// import imageCompression from "browser-image-compression";
 
 const availableLocales = computed(() => {
   return (locales.value).filter(i => i.code !== locale.value)
@@ -18,12 +19,14 @@ const fileObj = ref({
   name: '',
   type: ''
 })
+const fileObject = ref({})
 const onFileChange = (event) => {
   const file = event.target.files[0]
   const ctx = canvas.value.getContext('2d')
 
   if (!file) return
 
+  fileObject.value = file
   if (repeatTextStatus.value) {
     multiInitStatus.value = true
   } else {
@@ -160,7 +163,7 @@ const handleDownload = () => {
     xhr.onload = () => {
       if (xhr.status === 200) {
         const link = document.createElement('a');
-        const blob = new Blob([xhr.response], {type: 'image/png'});
+        const blob = new Blob([xhr.response], {type: fileObject.value.type});
         const url = URL.createObjectURL(blob);
 
         link.href = url;
@@ -182,6 +185,7 @@ const handleDownload = () => {
   }, 500)
 
 };
+
 const downloadPercentStatus = ref(false)
 const downloadPercentComplete = ref(0);
 const updateProgressBar = (percentComplete) => {
@@ -196,7 +200,7 @@ const resetProgressBar = () => {
   setTimeout(() => {
     downloadPercentStatus.value = false;
     downloadPercentComplete.value = 0;
-  },3000)
+  }, 3000)
 };
 
 const handleDownload1 = () => {
@@ -264,7 +268,8 @@ const repeatStatusChange = (e) => {
               {{ $t('websiteName') }}
               <nuxt-link class="text-[12px] text-red-500"
                          href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-                <Icon name="uil:github" color="black" size="24"/>
+<!--                <Icon name="uil:github" color="black" size="24"/>-->
+                <img style="width: 24px;height: 24px;" src="@/assets/icon/mdi--github.svg" alt="github">
               </nuxt-link>
             </h1>
           </div>
@@ -357,7 +362,7 @@ const repeatStatusChange = (e) => {
 
           <nuxt-link class="text-[12px] text-red-500"
                      href="https://github.com/unilei/image-watermark-tool.git" target="_blank">
-            <Icon name="uil:github" color="black" size="24"/>
+            <img style="width: 24px;height: 24px;" src="@/assets/icon/mdi--github.svg" alt="github">
           </nuxt-link>
         </h1>
 
