@@ -58,14 +58,14 @@ yarn dev
 
 ### 1. 方式一
 ```bash
-docker pull ghcr.io/chung1912/image-watermark-tool:latest
+docker pull ghcr.io/chung1912/image-watermark-tool:master
 ```
 
 ```bash
 docker run -it --name image-watermark-tool \
 -p 3000:3000 \
 --restart always \
-ghcr.io/chung1912/image-watermark-tool:latest
+ghcr.io/chung1912/image-watermark-tool:master
 ```
 
 ### 2. 方式二
