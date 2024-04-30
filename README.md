@@ -70,7 +70,7 @@ ghcr.io/chung1912/image-watermark-tool:latest
 
 ### 2. 方式二
 ```bash
-docker pull ghcr.io/chung1912/image-watermark-tool-nginx:latest
+docker pull ghcr.io/chung1912/image-watermark-tool-nginx:master
 ```
 
 ```bash
@@ -80,5 +80,5 @@ docker run -it --name image-watermark-tool-nginx \
 -v /path/to/private.pem:/etc/nginx/private.pem  \
 -v /path/to/private.key:/etc/nginx/private.key \
 --restart always \
-ghcr.io/chung1912/image-watermark-tool-nginx:latest
+ghcr.io/chung1912/image-watermark-tool-nginx:master
 ```
