@@ -91,23 +91,41 @@ const setWatermark = (ctx) => {
       const textMargin = ctx.measureText('哈').width;
       // 计算每行文字的高度，包括行间距
       const lineHeight = textSize + watermarkSpacing.value * textSize;
-
       // 计算水印的宽度
       const diagonalLength = Math.sqrt(canvas.value.width ** 2 + canvas.value.height ** 2);
-      const x = Math.ceil(diagonalLength / (textWidth + textMargin));
-      const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
 
-      // 计算绘制文本的 y 坐标，考虑行索引和行高
-      const startY = lineHeight * lineIndex;
+      if(watermarkAngle.value >= 0){
 
-      for (let i = 0; i < x; i++) {
-        for (let j = -y; j < y; j++) {
-          // 计算绘制文本的y坐标，考虑行间距和行索引
-          const yPos = startY + j * watermarkSpacing.value * textHeight;
+        const x = Math.ceil(diagonalLength / (textWidth + textMargin));
+        const y = Math.ceil(canvas.value.height / (watermarkSpacing.value * textHeight));
 
-          ctx.fillText(line, (textWidth + textMargin) * i, yPos);
+        // 计算绘制文本的 y 坐标，考虑行索引和行高
+        const startY = lineHeight * lineIndex;
+
+        for (let i = 0; i < x; i++) {
+          for (let j = -y; j < y; j++) {
+            // 计算绘制文本的y坐标，考虑行间距和行索引
+            const yPos = startY + j * watermarkSpacing.value * textHeight;
+
+            ctx.fillText(line, (textWidth + textMargin) * i, yPos);
+          }
+        }
+      }else{
+        const x = Math.ceil(diagonalLength / (textWidth + textMargin));
+        const y = Math.ceil(diagonalLength / (watermarkSpacing.value * textHeight));
+        // 计算绘制文本的 y 坐标，考虑行索引和行高
+        const startY = lineHeight * lineIndex;
+
+        // watermarkAngle.value < 0
+        for (let i = -x; i < x; i++) {
+          for (let j = -y; j < y; j++) {
+            // 计算绘制文本的y坐标，考虑行间距和行索引
+            const yPos = startY + j * watermarkSpacing.value * textHeight;
+            ctx.fillText(line, (textWidth + textMargin) * i, yPos);
+          }
         }
       }
+
     })
   } else {
     if (singleInitStatus.value) {
@@ -323,7 +341,7 @@ const repeatStatusChange = (e) => {
             <li class="flex flex-col  px-[20px]  gap-1" v-if="repeatTextStatus">
               <label class="min-w-[70px] font-bold text-[12px]">{{ $t('watermarkAngle') }}</label>
               <client-only>
-                <el-slider v-model="watermarkAngle" :min="0" :max="90" :step="1"
+                <el-slider v-model="watermarkAngle" :min="-90" :max="90" :step="1"
                            @change="waterMarkTextChange"></el-slider>
               </client-only>
             </li>
