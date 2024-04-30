@@ -53,3 +53,32 @@ yarn dev
 
 #### 如何部署到自己服务器？ NUXT.JS 打包部署文档
 [部署文档](https://nuxt.com/docs/getting-started/deployment)
+
+### 如何通过 Docker 部署
+
+### 1. 方式一
+```bash
+docker pull ghcr.io/chung1912/image-watermark-tool:latest
+```
+
+```bash
+docker run -it --name image-watermark-tool \
+-p 3000:3000 \
+--restart always \
+ghcr.io/chung1912/image-watermark-tool:latest
+```
+
+### 2. 方式二
+```bash
+docker pull ghcr.io/chung1912/image-watermark-tool-nginx:latest
+```
+
+```bash
+docker run -it --name image-watermark-tool-nginx \
+-p 8080:80 \
+-p 8443:443 \
+-v /path/to/private.pem:/etc/nginx/private.pem  \
+-v /path/to/private.key:/etc/nginx/private.key \
+--restart always \
+ghcr.io/chung1912/image-watermark-tool-nginx:latest
+```
